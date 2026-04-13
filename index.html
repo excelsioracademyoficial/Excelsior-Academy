@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Excelsior Academy — The Future's Excellency</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gold:#C9A84C;--gold-l:#F5E6B2;--gold-d:#8B6914;
+  --navy:#0F172A;--navy2:#1E293B;
+  --text:#1A1A2E;--text2:#6B7280;
+  --bg:#FFFBF0;--bg2:#FFF8E1;
+  --border:rgba(201,168,76,.22);--card:rgba(201,168,76,.06);
+}
+html{scroll-behavior:smooth}
+section[id]{scroll-margin-top:68px}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
+
+/* ═══ NAV ═══ */
+nav{
+  position:sticky;top:0;
+  z-index:99999; /* MUY ALTO para que nada quede encima */
+  background:rgba(15,23,42,.98);
+  backdrop-filter:blur(14px);
+  border-bottom:2px solid var(--gold);
+  height:64px;display:flex;align-items:center;
+  justify-content:space-between;padding:0 5%;
+}
+.nlogo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nico{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--gold-d),var(--gold));display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 0 16px rgba(201,168,76,.3)}
+.nbrand{font-size:.88rem;font-weight:800;color:#fff;line-height:1.15}
+.nbrand small{display:block;font-size:.5rem;color:var(--gold);letter-spacing:1.2px;font-weight:600}
+/* Desktop links */
+.nlinks{display:flex;align-items:center;gap:2px}
+.nlinks a{color:rgba(255,255,255,.75);text-decoration:none;font-size:.78rem;font-weight:600;padding:7px 10px;border-radius:7px;transition:.2s;white-space:nowrap}
+.nlinks a:hover{color:var(--gold);background:rgba(201,168,76,.1)}
+.ncta{background:linear-gradient(135deg,var(--gold-d),var(--gold))!important;color:#0F172A!important;font-weight:800!important;margin-left:8px;border-radius:8px!important;padding:8px 14px!important}
+.ncta:hover{opacity:.9}
+/* Hamburger button */
+.hbg{
+  display:none;flex-direction:column;justify-content:center;
+  gap:5px;cursor:pointer;background:none;border:none;padding:10px;
+  position:relative;z-index:100000;
+}
+.hbg span{width:24px;height:2.5px;background:var(--gold);border-radius:2px;transition:.35s;display:block}
+.hbg.open span:nth-child(1){transform:translateY(7.5px) rotate(45deg)}
+.hbg.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.hbg.open span:nth-child(3){transform:translateY(-7.5px) rotate(-45deg)}
+
+/* ── MOBILE: menú overlay — FUERA del nav ── */
+/* El elemento #mob-menu es hijo directo de body, sin ningún ancestro
+   con backdrop-filter/transform, por lo que el z-index funciona 100% */
+#mob-menu{
+  display:none;
+  position:fixed;
+  top:64px;left:0;right:0;bottom:0;
+  background:rgba(8,12,24,.98);
+  flex-direction:column;align-items:stretch;
+  padding:24px 6%;
+  gap:6px;
+  z-index:999999; /* mayor que todo */
+  overflow-y:auto;
+}
+#mob-menu.open{display:flex}
+#mob-menu a{
+  padding:15px 20px;font-size:.95rem;border-radius:10px;
+  border:1px solid rgba(201,168,76,.12);
+  color:rgba(255,255,255,.85);
+  text-decoration:none;font-weight:600;
+  transition:.2s;
+}
+#mob-menu a:hover{color:var(--gold);background:rgba(201,168,76,.09);border-color:rgba(201,168,76,.35)}
+#mob-menu .ncta{
+  text-align:center;padding:15px 20px;
+  background:linear-gradient(135deg,var(--gold-d),var(--gold));
+  color:#0F172A!important;font-weight:800!important;
+  border:none!important;margin-top:8px;
+  border-radius:10px;
+}
+@media(max-width:860px){.hbg{display:flex}.nlinks{display:none!important}}
+
+/* ═══ HERO ═══ */
+.hero{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 50%,#1a1a3e 100%);
+  position:relative;overflow:hidden;padding:80px 5% 60px;text-align:center;
+}
+/* Radial glow */
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(201,168,76,.13) 0%,transparent 65%)}
+/* Canvas para partículas y efectos */
+#heroCanvas{position:absolute;inset:0;pointer-events:none}
+.hcnt{position:relative;z-index:2;max-width:760px;margin:0 auto}
+.hbadge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.35);
+  border-radius:50px;padding:8px 20px;margin-bottom:30px;
+  font-size:.78rem;font-weight:700;color:var(--gold);letter-spacing:.5px;
+  animation:fadeInUp .8s ease both;
+}
+.chars{display:flex;justify-content:center;gap:14px;margin-bottom:30px;flex-wrap:wrap;animation:fadeInUp .8s .15s ease both}
+.ch{
+  width:54px;height:54px;border-radius:50%;
+  border:2px solid var(--gold);background:rgba(201,168,76,.1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.45rem;animation:bob 3s ease-in-out infinite;
+  transition:.3s;cursor:default;
+  box-shadow:0 0 0 0 rgba(201,168,76,0);
+}
+.ch:hover{transform:scale(1.2)!important;background:rgba(201,168,76,.25);box-shadow:0 0 18px rgba(201,168,76,.4)}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.hero h1{font-size:clamp(1.9rem,5.5vw,3.7rem);font-weight:900;color:#fff;line-height:1.15;margin-bottom:14px;animation:fadeInUp .8s .3s ease both}
+.hero h1 span{background:linear-gradient(135deg,var(--gold-d),var(--gold),var(--gold-l));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hsub{font-size:1rem;color:rgba(255,255,255,.65);line-height:1.75;margin-bottom:36px;max-width:560px;margin-left:auto;margin-right:auto;animation:fadeInUp .8s .45s ease both}
+.hbtns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;animation:fadeInUp .8s .6s ease both}
+.bg{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:#0F172A;font-weight:800;font-size:.95rem;padding:14px 28px;border-radius:10px;text-decoration:none;box-shadow:0 6px 24px rgba(201,168,76,.35);transition:.25s}
+.bg:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(201,168,76,.5)}
+.bo{display:inline-flex;align-items:center;gap:8px;border:2px solid rgba(201,168,76,.45);color:#fff;font-weight:700;font-size:.9rem;padding:13px 24px;border-radius:10px;text-decoration:none;transition:.25s}
+.bo:hover{border-color:var(--gold);background:rgba(201,168,76,.08)}
+.scroll{margin-top:50px;color:rgba(255,255,255,.3);font-size:.78rem;animation:bounce 2s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateY(0);opacity:.3}50%{transform:translateY(6px);opacity:.7}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+/* Rating hero */
+.hero-rating{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:22px;animation:fadeInUp .8s .75s ease both}
+.stars{color:#F59E0B;font-size:1.1rem;letter-spacing:2px}
+.rating-num{color:#fff;font-weight:800;font-size:1rem}
+.rating-txt{color:rgba(255,255,255,.5);font-size:.78rem}
+
+/* ═══ SECCIONES GENERALES ═══ */
+section{padding:80px 5%}
+.slbl{font-size:.68rem;font-weight:800;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;display:block}
+.stit{font-size:clamp(1.5rem,3vw,2.3rem);font-weight:900;color:var(--navy);line-height:1.2;margin-bottom:14px}
+.sdesc{font-size:1rem;color:var(--text2);line-height:1.7;max-width:580px}
+.gline{width:50px;height:3px;background:linear-gradient(90deg,var(--gold-d),var(--gold));border-radius:2px;margin-bottom:18px}
+.cx{text-align:center}.cx .sdesc{margin:0 auto}.cx .gline{margin-left:auto;margin-right:auto}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;max-width:1100px;margin:0 auto}
+@media(max-width:860px){.twocol{grid-template-columns:1fr}}
+
+/* ═══ NOSOTROS ═══ */
+#nosotros{background:var(--bg);position:relative;overflow:hidden}
+#nosotros::before{content:'';position:absolute;right:-120px;top:-120px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.06),transparent 70%);pointer-events:none}
+.vgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:28px}
+.vcard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;transition:.3s;position:relative;overflow:hidden}
+.vcard::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,168,76,.03),transparent);pointer-events:none}
+.vcard:hover{border-color:var(--gold);transform:translateY(-3px);box-shadow:0 8px 24px rgba(201,168,76,.12)}
+.vcard .ico{font-size:1.6rem;margin-bottom:8px}
+.vcard h4{font-size:.88rem;font-weight:800;color:var(--navy);margin-bottom:4px}
+.vcard p{font-size:.77rem;color:var(--text2);line-height:1.5}
+.stcards{display:flex;flex-direction:column;gap:14px}
+.stcard{background:var(--navy);border:1px solid rgba(201,168,76,.2);border-radius:14px;padding:20px 22px;display:flex;align-items:center;gap:16px;transition:.3s}
+.stcard:hover{border-color:rgba(201,168,76,.5);transform:translateX(4px)}
+.stnum{font-size:2.1rem;font-weight:900;color:var(--gold);line-height:1;min-width:56px}
+.stlbl{font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.4}
+.stlbl strong{display:block;color:#fff;font-size:.88rem;margin-bottom:2px}
+@media(max-width:860px){.stcards{display:grid;grid-template-columns:1fr 1fr}.vgrid{grid-template-columns:1fr}}
+
+/* ═══ SERVICIOS ═══ */
+#servicios{background:var(--bg2);position:relative}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px;max-width:1100px;margin:36px auto 0}
+.pcard{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.06);transition:.35s;border:2px solid transparent;position:relative}
+.pcard:hover{transform:translateY(-6px);border-color:var(--gold);box-shadow:0 16px 40px rgba(201,168,76,.2)}
+.pcard-head{background:linear-gradient(135deg,var(--navy),var(--navy2));padding:22px 24px}
+.pcard-head .ico{font-size:2rem;margin-bottom:8px}
+.pcard-head h3{font-size:1.05rem;font-weight:900;color:#fff;margin-bottom:4px}
+.pcard-head p{font-size:.78rem;color:rgba(255,255,255,.6);line-height:1.5}
+.pcard-body{padding:20px 24px}
+.plan{display:flex;justify-content:space-between;align-items:flex-start;padding:11px 0;border-bottom:1px solid rgba(201,168,76,.1);gap:12px}
+.plan:last-child{border-bottom:none}
+.plan-name{font-size:.82rem;font-weight:700;color:var(--navy)}
+.plan-det{font-size:.74rem;color:var(--text2);margin-top:2px;line-height:1.4}
+.plan-price{font-size:1rem;font-weight:900;color:var(--gold-d);white-space:nowrap;flex-shrink:0}
+.plan-badge{font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:50px;margin-left:5px;vertical-align:middle}
+.bdiam{background:rgba(201,168,76,.15);color:var(--gold-d);border:1px solid rgba(201,168,76,.3)}
+.bpop{background:rgba(16,185,129,.12);color:#047857;border:1px solid rgba(16,185,129,.25)}
+.bcog{background:rgba(139,92,246,.12);color:#6D28D9;border:1px solid rgba(139,92,246,.25);display:block;margin-top:4px;font-size:.66rem}
+
+/* Políticas */
+.politicas{background:var(--navy);border-radius:16px;padding:28px;max-width:1100px;margin:28px auto 0;border:1px solid rgba(201,168,76,.2)}
+.politicas h4{color:var(--gold);font-size:.9rem;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.pol-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.pol{font-size:.77rem;color:rgba(255,255,255,.6);line-height:1.55;display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,.03);border-radius:8px;padding:10px 12px;border:1px solid rgba(201,168,76,.08)}
+.pol-num{color:var(--gold);font-weight:800;font-size:.8rem;flex-shrink:0;margin-top:1px}
+
+/* ═══ METODOLOGÍA ═══ */
+#metodologia{background:var(--bg);position:relative;overflow:hidden}
+#metodologia::after{content:'';position:absolute;left:-100px;bottom:-100px;width:350px;height:350px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.05),transparent 70%);pointer-events:none}
+.msteps{display:flex;flex-direction:column;gap:20px;margin-top:10px}
+.mstep{display:flex;gap:16px;align-items:flex-start;transition:.3s}
+.mstep:hover{transform:translateX(4px)}
+.mnum{width:38px;height:38px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--gold-d),var(--gold));display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:900;color:#0F172A;box-shadow:0 4px 12px rgba(201,168,76,.3)}
+.mtxt h4{font-size:.93rem;font-weight:800;color:var(--navy);margin-bottom:4px}
+.mtxt p{font-size:.82rem;color:var(--text2);line-height:1.6}
+.mcards{display:flex;flex-direction:column;gap:14px}
+.mcard{background:var(--navy);border-radius:14px;padding:20px 22px;border:1px solid rgba(201,168,76,.12);transition:.3s}
+.mcard:hover{border-color:rgba(201,168,76,.4);transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.2)}
+.mcard-h{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.mcard-h span{font-size:1.4rem}
+.mcard h4{font-size:.93rem;font-weight:800;color:#fff}
+.mcard p{font-size:.8rem;color:rgba(255,255,255,.6);line-height:1.6}
+
+/* ═══ PERSONAJES ═══ */
+#personajes{background:var(--bg2)}
+.persgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:18px;max-width:1100px;margin:32px auto 0}
+.perscard{background:#fff;border:2px solid transparent;border-radius:16px;padding:24px 16px;text-align:center;transition:.35s;box-shadow:0 2px 12px rgba(0,0,0,.05);position:relative;overflow:hidden}
+.perscard::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 60%,rgba(201,168,76,.04));pointer-events:none}
+.perscard:hover{transform:translateY(-5px);box-shadow:0 12px 30px rgba(0,0,0,.12)}
+.persico{font-size:2.5rem;margin-bottom:10px;display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.1))}
+.perscard h3{font-size:.9rem;font-weight:800;margin-bottom:4px}
+.persrole{font-size:.68rem;font-weight:700;padding:2px 10px;border-radius:50px;display:inline-block;margin-bottom:8px}
+.perscard p{font-size:.75rem;color:var(--text2);line-height:1.5}
+
+/* ═══ TESTIMONIOS ═══ */
+#testimonios{background:var(--bg);position:relative;overflow:hidden}
+#testimonios::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--gold-d),var(--gold),var(--gold-d))}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;max-width:1100px;margin:36px auto 0}
+.tcard{background:#fff;border-radius:16px;padding:26px;box-shadow:0 2px 16px rgba(0,0,0,.06);border:1px solid rgba(201,168,76,.1);transition:.3s;position:relative}
+.tcard:hover{transform:translateY(-4px);box-shadow:0 10px 28px rgba(201,168,76,.15);border-color:rgba(201,168,76,.3)}
+.tcard::before{content:'\201C';position:absolute;top:16px;right:22px;font-size:4rem;color:rgba(201,168,76,.15);font-family:Georgia,serif;line-height:1}
+.tstars{color:#F59E0B;font-size:.95rem;letter-spacing:2px;margin-bottom:10px}
+.ttext{font-size:.88rem;color:var(--text);line-height:1.7;margin-bottom:16px;font-style:italic}
+.tauthor{display:flex;align-items:center;gap:12px}
+.tavatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--gold-d),var(--gold));display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:800;color:#fff;flex-shrink:0}
+.tname{font-size:.85rem;font-weight:800;color:var(--navy)}
+.trole{font-size:.72rem;color:var(--text2)}
+/* Barra de rating global */
+.rating-bar{
+  background:var(--navy);border-radius:16px;padding:28px 32px;
+  max-width:700px;margin:0 auto 40px;
+  display:flex;align-items:center;justify-content:center;gap:32px;flex-wrap:wrap;
+}
+.rb-score{text-align:center}
+.rb-big{font-size:3.5rem;font-weight:900;color:var(--gold);line-height:1}
+.rb-stars{color:#F59E0B;font-size:1.3rem;letter-spacing:3px;margin:4px 0}
+.rb-sub{font-size:.75rem;color:rgba(255,255,255,.5)}
+.rb-divider{width:1px;height:60px;background:rgba(201,168,76,.2)}
+.rb-items{display:flex;flex-direction:column;gap:8px}
+.rb-row{display:flex;align-items:center;gap:10px}
+.rb-label{font-size:.75rem;color:rgba(255,255,255,.6);width:80px}
+.rb-track{flex:1;height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
+.rb-fill{height:100%;background:linear-gradient(90deg,var(--gold-d),var(--gold));border-radius:3px}
+.rb-pct{font-size:.72rem;color:var(--gold);font-weight:700;width:30px;text-align:right}
+
+/* ═══ COGNITEXAC ═══ */
+#cognitexac{background:linear-gradient(135deg,var(--navy) 0%,#0d1929 60%,#1a1a3e 100%);text-align:center;padding:100px 5%;position:relative;overflow:hidden}
+#cognitexac::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.07),transparent 65%);pointer-events:none}
+/* Floating orbs deco */
+.orb{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.08),transparent);pointer-events:none;animation:orbFloat 10s ease-in-out infinite}
+@keyframes orbFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-20px) scale(1.05)}}
+.cogbadge{display:inline-flex;align-items:center;gap:8px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);border-radius:50px;padding:6px 16px;margin-bottom:22px;font-size:.72rem;font-weight:700;color:var(--gold);letter-spacing:.5px}
+#cognitexac h2{font-size:clamp(1.7rem,4vw,2.8rem);font-weight:900;color:#fff;margin-bottom:12px}
+#cognitexac h2 span{color:var(--gold)}
+.cogsub{font-size:1rem;color:rgba(255,255,255,.6);line-height:1.7;max-width:580px;margin:0 auto 36px}
+.coggrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;max-width:920px;margin:0 auto 40px;position:relative;z-index:1}
+.cogfeat{background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.18);border-radius:14px;padding:22px 14px;transition:.3s}
+.cogfeat:hover{background:rgba(201,168,76,.08);border-color:rgba(201,168,76,.4);transform:translateY(-3px)}
+.cogfeat .ico{font-size:1.7rem;margin-bottom:8px}
+.cogfeat h4{font-size:.85rem;font-weight:800;color:#fff;margin-bottom:4px}
+.cogfeat p{font-size:.74rem;color:rgba(255,255,255,.55);line-height:1.5}
+.cogbtn{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:#0F172A;font-weight:900;font-size:1rem;padding:16px 36px;border-radius:12px;text-decoration:none;box-shadow:0 8px 28px rgba(201,168,76,.4);transition:.25s;position:relative;z-index:1}
+.cogbtn:hover{transform:translateY(-3px);box-shadow:0 14px 42px rgba(201,168,76,.55)}
+.cognote{color:rgba(255,255,255,.35);font-size:.74rem;margin-top:14px;position:relative;z-index:1}
+.cog-autoria{color:rgba(255,255,255,.25);font-size:.68rem;margin-top:22px;border-top:1px solid rgba(201,168,76,.1);padding-top:18px;max-width:560px;margin-left:auto;margin-right:auto;line-height:1.6;position:relative;z-index:1}
+.cog-autoria span{color:rgba(201,168,76,.6)}
+
+/* ═══ CONTACTO ═══ */
+#contacto{background:var(--bg2)}
+.cw{max-width:900px;margin:0 auto}
+.ctgrid{display:grid;grid-template-columns:1fr 1fr;gap:50px;margin-top:36px;align-items:start}
+@media(max-width:720px){.ctgrid{grid-template-columns:1fr}}
+.citem{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px}
+.cico{width:42px;height:42px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,var(--gold-d),var(--gold));display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:0 4px 12px rgba(201,168,76,.25)}
+.ctxt{font-size:.85rem;color:var(--text2);line-height:1.5}
+.ctxt strong{display:block;color:var(--navy);font-size:.88rem;margin-bottom:2px}
+.ctxt a{color:var(--gold-d);text-decoration:none;font-weight:700}
+.ctxt a:hover{text-decoration:underline}
+.hbox{background:var(--navy);border-radius:14px;padding:20px;border:1px solid rgba(201,168,76,.2)}
+.hbox h4{color:var(--gold);font-size:.85rem;font-weight:800;margin-bottom:10px}
+.hrow{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:.8rem}
+.hrow:last-child{border-bottom:none}
+.hrow span:first-child{color:rgba(255,255,255,.6)}
+.hrow span:last-child{color:var(--gold);font-weight:700}
+.wabtn{display:inline-flex;align-items:center;gap:10px;background:#25D366;color:#fff;font-weight:800;font-size:.9rem;padding:14px 26px;border-radius:10px;text-decoration:none;margin-top:16px;transition:.25s;box-shadow:0 4px 16px rgba(37,211,102,.3)}
+.wabtn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(37,211,102,.45)}
+.ctbox{background:#fff;border:2px solid rgba(201,168,76,.2);border-radius:16px;padding:28px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+.ctbox h3{font-size:1.05rem;font-weight:800;color:var(--navy)}
+.ctbox p{font-size:.83rem;color:var(--text2);line-height:1.6;max-width:260px}
+
+/* ═══ FOOTER ═══ */
+footer{background:var(--navy);border-top:2px solid var(--gold);padding:48px 5% 28px}
+.ftop{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;margin-bottom:32px}
+@media(max-width:680px){.ftop{grid-template-columns:1fr}}
+.fbrand p{font-size:.8rem;color:rgba(255,255,255,.45);line-height:1.7;margin-top:10px;max-width:280px}
+.fautoria{font-size:.74rem;color:rgba(201,168,76,.5);margin-top:8px;font-style:italic}
+.fcol h4{font-size:.76rem;font-weight:800;color:var(--gold);margin-bottom:12px;letter-spacing:.5px;text-transform:uppercase}
+.fcol ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.fcol ul a{font-size:.8rem;color:rgba(255,255,255,.48);text-decoration:none;transition:.2s}
+.fcol ul a:hover{color:var(--gold)}
+.fbottom{border-top:1px solid rgba(255,255,255,.07);padding-top:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.fbottom p{font-size:.74rem;color:rgba(255,255,255,.3)}
+.fbottom span{color:var(--gold)}
+
+/* reveal animation */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .5s ease,transform .5s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- ─── NAV ─────────────────────────────────────────── -->
+<nav>
+  <a href="#inicio" class="nlogo" onclick="cm()">
+    <div class="nico">🎓</div>
+    <div class="nbrand">Excelsior Academy<small>THE FUTURE'S EXCELLENCY</small></div>
+  </a>
+  <div class="nlinks" id="NL">
+    <a href="#nosotros">Nosotros</a>
+    <a href="#servicios">Servicios</a>
+    <a href="#metodologia">Metodología</a>
+    <a href="#personajes">Equipo</a>
+    <a href="#testimonios">Testimonios</a>
+    <a href="#cognitexac">CognitExAc</a>
+    <a href="#contacto">Contacto</a>
+    <a href="cognitexac.html" class="ncta" target="_blank">🧠 Plataforma</a>
+  </div>
+  <button class="hbg" id="HB" onclick="tm()" aria-label="Abrir menú">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ─── HERO ────────────────────────────────────────── -->
+<section class="hero" id="inicio">
+  <canvas id="heroCanvas"></canvas>
+  <div class="hcnt">
+    <div class="hbadge">✨ Academia privada de excelencia educativa · Online y Presencial</div>
+    <div class="chars">
+      <div class="ch" title="Excelencia · Directora">🎓</div>
+      <div class="ch" title="Coco · Memoria"         style="animation-delay:.3s">🧠</div>
+      <div class="ch" title="La Profe · Lenguaje"    style="animation-delay:.6s">📚</div>
+      <div class="ch" title="Chispa · Matemáticas"   style="animation-delay:.9s">⚡</div>
+      <div class="ch" title="Vale · Atención"         style="animation-delay:1.2s">🎯</div>
+      <div class="ch" title="Don Raro · Razonamiento" style="animation-delay:1.5s">🔮</div>
+    </div>
+    <h1>Donde nace la<br><span>Excelencia Académica</span></h1>
+    <p class="hsub">
+      Clases personalizadas 1 a 1 de Kinder hasta la universidad.
+      Presenciales o en línea, adaptadas a tu horario, con
+      <strong style="color:var(--gold)">asistencia Flash 24/7</strong> y la plataforma
+      <strong style="color:var(--gold)">CognitExAc</strong> para entrenar la mente.
+    </p>
+    <div class="hbtns">
+      <a href="#servicios" class="bg">📋 Ver servicios y precios</a>
+      <a href="#contacto"  class="bo">💬 Contactar por WhatsApp</a>
+    </div>
+    <div class="hero-rating">
+      <div class="stars">★★★★★</div>
+      <div class="rating-num">4.8</div>
+      <div class="rating-txt">· Calificación promedio de nuestros clientes</div>
+    </div>
+    <p class="scroll">↓ descubre todo</p>
+  </div>
+</section>
+
+<!-- ─── NOSOTROS ─────────────────────────────────────── -->
+<section id="nosotros">
+  <div class="twocol">
+    <div>
+      <span class="slbl">¿Quiénes somos?</span>
+      <div class="gline"></div>
+      <h2 class="stit">Más que una academia,<br>tu equipo de aprendizaje</h2>
+      <p class="sdesc">En Excelsior Academy creemos que no existe mejor inversión que la educación. Nuestro objetivo es ayudarte a aprender aquello que crees aburrido, imposible o estresante — desde una clase que no te explicaron bien hasta aprobar tu examen de admisión.</p>
+      <p class="sdesc" style="margin-top:12px">Nos adaptamos a tus horarios con clases online o presenciales, siempre en modalidad 1 a 1 para garantizar tu avance real.</p>
+      <p class="sdesc" style="margin-top:12px;color:var(--gold-d);font-style:italic;font-size:.88rem">— Aldo Misael Flores Rueda, Fundador y Director General de Excelsior Academy</p>
+      <div class="vgrid" style="margin-top:22px">
+        <div class="vcard reveal"><div class="ico">🎯</div><h4>Personalización</h4><p>Clases 1 a 1 adaptadas al alumno, no al grupo ni al temario estándar.</p></div>
+        <div class="vcard reveal"><div class="ico">⏰</div><h4>Flexibilidad</h4><p>Nos adaptamos a tus horarios. Online o presencial cuando tú puedas.</p></div>
+        <div class="vcard reveal"><div class="ico">⚡</div><h4>Asistencia Flash</h4><p>Soporte 24/7 vía WhatsApp o Telegram en paquetes Diamante.</p></div>
+        <div class="vcard reveal"><div class="ico">⭐</div><h4>Excelencia</h4><p>Asesores comprometidos con el aprendizaje completo de cada alumno.</p></div>
+      </div>
+    </div>
+    <div class="stcards">
+      <div class="stcard reveal"><div class="stnum">1:1</div><div class="stlbl"><strong>Atención personalizada</strong>Siempre clases individuales adaptadas a ti</div></div>
+      <div class="stcard reveal"><div class="stnum">K–Uni</div><div class="stlbl"><strong>Todos los niveles</strong>Kinder, Primaria, Secundaria, Prepa y Universidad</div></div>
+      <div class="stcard reveal"><div class="stnum">24/7</div><div class="stlbl"><strong>Asistencia Flash</strong>Disponible en paquetes Diamante</div></div>
+      <div class="stcard reveal"><div class="stnum">4.8★</div><div class="stlbl"><strong>Calificación promedio</strong>Valoración de nuestros clientes satisfechos</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── SERVICIOS ─────────────────────────────────────── -->
+<section id="servicios">
+  <div class="cx">
+    <span class="slbl">Programas educativos</span>
+    <div class="gline"></div>
+    <h2 class="stit">Servicios y Tarifas</h2>
+    <p class="sdesc">Elige el paquete que mejor se adapte a tus necesidades. Todos incluyen clases online o presenciales*.</p>
+  </div>
+
+  <div class="pgrid">
+
+    <!-- LECTURA Y REDACCION -->
+    <div class="pcard reveal">
+      <div class="pcard-head"><div class="ico">✏️</div><h3>Lectura y Redacción</h3><p>Para los más pequeños del hogar. Bases sólidas de lecto-escritura y expresión.</p></div>
+      <div class="pcard-body">
+        <div class="plan"><div><div class="plan-name">Clase única</div><div class="plan-det">1 clase online o presencial</div></div><div class="plan-price">$150</div></div>
+        <div class="plan"><div><div class="plan-name">LyR Plus</div><div class="plan-det">3 clases online o presencial</div></div><div class="plan-price">$420</div></div>
+        <div class="plan"><div><div class="plan-name">LyR Gold</div><div class="plan-det">4 clases online o presencial</div></div><div class="plan-price">$500</div></div>
+        <div class="plan">
+          <div>
+            <div class="plan-name">LyR Diamante <span class="plan-badge bdiam">💎</span></div>
+            <div class="plan-det">5 clases + Asistencia Flash 24/7</div>
+            <span class="plan-badge bcog">🧠 Incluye acceso a CognitExAc</span>
+          </div>
+          <div class="plan-price">$550</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CURSOS DE ADMISION -->
+    <div class="pcard reveal">
+      <div class="pcard-head"><div class="ico">🏛️</div><h3>Cursos de Admisión</h3><p>Secundaria, Preparatoria y Universidad. Preparación completa para tu examen.</p></div>
+      <div class="pcard-body">
+        <div class="plan"><div><div class="plan-name">Clase única</div><div class="plan-det">1 clase online o presencial</div></div><div class="plan-price">$200</div></div>
+        <div class="plan"><div><div class="plan-name">Admisión Plus</div><div class="plan-det">3 clases online o presencial</div></div><div class="plan-price">$500</div></div>
+        <div class="plan"><div><div class="plan-name">Admisión Gold</div><div class="plan-det">4 clases online o presencial</div></div><div class="plan-price">$550</div></div>
+        <div class="plan">
+          <div>
+            <div class="plan-name">Admisión Diamante <span class="plan-badge bdiam">💎</span></div>
+            <div class="plan-det">5 clases + Asistencia Flash 24/7</div>
+            <span class="plan-badge bcog">🧠 Incluye acceso a CognitExAc</span>
+          </div>
+          <div class="plan-price">$600</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REGULARIZACION -->
+    <div class="pcard reveal">
+      <div class="pcard-head"><div class="ico">🔄</div><h3>Regularización</h3><p>Plan personalizado para alumnos con materias pendientes en cualquier nivel.</p></div>
+      <div class="pcard-body">
+        <div class="plan"><div><div class="plan-name">Paquete Única</div><div class="plan-det">1 clase online o presencial</div></div><div class="plan-price">$200</div></div>
+        <div class="plan"><div><div class="plan-name">Regularización Plus</div><div class="plan-det">3 clases online o presencial</div></div><div class="plan-price">$500</div></div>
+        <div class="plan"><div><div class="plan-name">Regularización Gold</div><div class="plan-det">4 clases online o presencial</div></div><div class="plan-price">$650</div></div>
+        <div class="plan">
+          <div>
+            <div class="plan-name">Regularización Diamante <span class="plan-badge bdiam">💎</span></div>
+            <div class="plan-det">5 clases + Asistencia Flash 24/7</div>
+            <span class="plan-badge bcog">🧠 Incluye acceso a CognitExAc</span>
+          </div>
+          <div class="plan-price">$750</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INGLES -->
+    <div class="pcard reveal">
+      <div class="pcard-head"><div class="ico">🌍</div><h3>Clases de Inglés</h3><p>Vocabulario, gramática y expresión oral. Clases dinámicas e interactivas.</p></div>
+      <div class="pcard-body">
+        <div class="plan"><div><div class="plan-name">English Class ×1</div><div class="plan-det">1 clase online o presencial</div></div><div class="plan-price">$150</div></div>
+        <div class="plan"><div><div class="plan-name">English Class ×2</div><div class="plan-det">2 clases online o presencial</div></div><div class="plan-price">$275</div></div>
+        <div class="plan">
+          <div>
+            <div class="plan-name">English Class ×3 <span class="plan-badge bpop">★ Popular</span></div>
+            <div class="plan-det">3 clases para 2 usuarios + Asistencia vía WhatsApp 24/7</div>
+          </div>
+          <div class="plan-price">$300</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MATEXCELSIOR -->
+    <div class="pcard reveal">
+      <div class="pcard-head"><div class="ico">➗</div><h3>MatExcelsior</h3><p>Matemáticas desde básica hasta cálculo. Aprendizaje claro y progresivo.</p></div>
+      <div class="pcard-body">
+        <div class="plan"><div><div class="plan-name">Paquete Única</div><div class="plan-det">1 clase online o presencial</div></div><div class="plan-price">$200</div></div>
+        <div class="plan"><div><div class="plan-name">MatExcelsior Plus</div><div class="plan-det">3 clases online o presencial</div></div><div class="plan-price">$500</div></div>
+        <div class="plan"><div><div class="plan-name">MatExcelsior Gold</div><div class="plan-det">4 clases online o presencial</div></div><div class="plan-price">$650</div></div>
+        <div class="plan">
+          <div>
+            <div class="plan-name">MatExcelsior Diamante <span class="plan-badge bdiam">💎</span></div>
+            <div class="plan-det">5 clases + Asistencia Flash 24/7</div>
+            <span class="plan-badge bcog">🧠 Incluye acceso a CognitExAc</span>
+          </div>
+          <div class="plan-price">$750</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ASESORIAS GENERALES -->
+    <div class="pcard reveal">
+      <div class="pcard-head"><div class="ico">📖</div><h3>Asesorías Generales</h3><p>Cualquier materia, cualquier nivel. Asesoría académica completa y personalizada.</p></div>
+      <div class="pcard-body">
+        <div class="plan"><div><div class="plan-name">Paquete Única</div><div class="plan-det">1 clase online o presencial</div></div><div class="plan-price">$200</div></div>
+        <div class="plan"><div><div class="plan-name">Excelsior Plus</div><div class="plan-det">2 asesorías + 1 clase personalizada</div></div><div class="plan-price">$500</div></div>
+        <div class="plan"><div><div class="plan-name">Excelsior Gold</div><div class="plan-det">3 asesorías + 1 clase personalizada</div></div><div class="plan-price">$650</div></div>
+        <div class="plan">
+          <div>
+            <div class="plan-name">Excelsior Diamante <span class="plan-badge bdiam">💎</span></div>
+            <div class="plan-det">4 asesorías + 1 clase inglés básico + Asistencia Flash 24/7</div>
+            <span class="plan-badge bcog">🧠 Incluye acceso a CognitExAc</span>
+          </div>
+          <div class="plan-price">$750</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /pgrid -->
+
+  <!-- POLITICAS -->
+  <div class="politicas reveal">
+    <h4>📋 Políticas y condiciones del servicio</h4>
+    <div class="pol-grid">
+      <div class="pol"><div class="pol-num">1</div><div>Para clases presenciales se requiere la presencia de un padre o familiar adulto durante toda la sesión, así como gel antibacterial disponible. El uso de cubrebocas es obligatorio únicamente en caso de presentar síntomas de enfermedad respiratoria activa, tanto por parte del alumno como del asesor.</div></div>
+      <div class="pol"><div class="pol-num">2</div><div>Las clases presenciales no incluyen costo de traslado. El costo varía según zona de residencia y se informa antes de confirmar el servicio.</div></div>
+      <div class="pol"><div class="pol-num">3</div><div>Todos los pagos de servicios semanales se realizan un día antes de la clase correspondiente.</div></div>
+      <div class="pol"><div class="pol-num">4</div><div>Precios sujetos a cambio sin previo aviso. Mantente al pendiente en nuestras páginas oficiales y números de contacto.</div></div>
+      <div class="pol"><div class="pol-num">5</div><div>Excelsior Academy proporcionará al cliente, en una sola ocasión, el documento oficial de Evaluación y Registro de Asistencia. El cliente deberá contar con una copia impresa de dicho documento en cada sesión para su llenado durante la clase. En caso de que el asesor asignado se presente y el cliente no cuente con el documento, la clase será registrada como impartida y no podrá ser reprogramada, repuesta ni reagendada bajo ninguna circunstancia.</div></div>
+      <div class="pol"><div class="pol-num">6</div><div>Se establece una tolerancia de <strong style="color:rgba(201,168,76,.9)">5 minutos</strong> de impuntualidad tanto para el asesor como para el alumno. Una vez transcurrido dicho tiempo sin que alguna de las partes se haya presentado o comunicado, la sesión podrá darse por cancelada conforme a las políticas de cancelación vigentes.</div></div>
+      <div class="pol"><div class="pol-num">7</div><div>Toda cancelación o reprogramación de clase deberá notificarse con un mínimo de <strong style="color:rgba(201,168,76,.9)">24 horas de anticipación</strong>. Únicamente en casos de emergencia o enfermedad debidamente comprobable — mediante evidencia médica u otro medio verificable — se considerará la posibilidad de reagendar la sesión. Si la situación no fue posible notificarse con anticipación, el cliente deberá presentar el comprobante correspondiente para que aplique la excepción. Las cancelaciones por causas distintas a salud o emergencia sin aviso previo de 24 horas no serán repuestas ni reembolsadas.</div></div>
+      <div class="pol"><div class="pol-num">8</div><div>Excelsior Academy somos asesores escolares altamente preparados. Al contratar nuestros servicios y paquetes, el cliente acepta todas y cada una de las políticas de Excelsior Academy en su totalidad.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── METODOLOGÍA ───────────────────────────────────── -->
+<section id="metodologia">
+  <div class="twocol">
+    <div>
+      <span class="slbl">Cómo trabajamos</span>
+      <div class="gline"></div>
+      <h2 class="stit">Un método que<br>realmente funciona</h2>
+      <p class="sdesc">Diagnóstico, plan adaptado, práctica constante y seguimiento real. Resultados visibles desde la primera sesión.</p>
+      <div class="msteps">
+        <div class="mstep reveal"><div class="mnum">1</div><div class="mtxt"><h4>Diagnóstico inicial</h4><p>Identificamos el nivel actual, fortalezas y áreas de oportunidad en la primera sesión.</p></div></div>
+        <div class="mstep reveal"><div class="mnum">2</div><div class="mtxt"><h4>Plan personalizado</h4><p>Diseñamos metas semanales y estrategias adaptadas al perfil único de cada alumno.</p></div></div>
+        <div class="mstep reveal"><div class="mnum">3</div><div class="mtxt"><h4>Clases y práctica</h4><p>Sesiones 1 a 1, dinámicas, con ejercicios progresivos y apoyo de CognitExAc.</p></div></div>
+        <div class="mstep reveal"><div class="mnum">4</div><div class="mtxt"><h4>Seguimiento y evaluación</h4><p>Simulacros, reporte de avances a la familia y evaluación diaria del asesor asignado.</p></div></div>
+      </div>
+    </div>
+    <div class="mcards">
+      <div class="mcard reveal"><div class="mcard-h"><span>🏠</span><h4>Clases a domicilio</h4></div><p>Nuestros asesores van directamente a tu hogar. Aprende donde te sientas más cómodo.</p></div>
+      <div class="mcard reveal"><div class="mcard-h"><span>💻</span><h4>Clases online</h4></div><p>Conéctate desde cualquier lugar con la misma calidad y atención personalizada.</p></div>
+      <div class="mcard reveal"><div class="mcard-h"><span>⚡</span><h4>Asistencia Flash 24/7</h4></div><p>Soporte via WhatsApp o Telegram en horarios disponibles para resolver dudas entre sesiones (paquetes Diamante).</p></div>
+      <div class="mcard reveal"><div class="mcard-h"><span>🧠</span><h4>CognitExAc</h4></div><p>Plataforma exclusiva de entrenamiento mental para fortalecer habilidades cognitivas a través del juego.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PERSONAJES ────────────────────────────────────── -->
+<section id="personajes">
+  <div class="cx">
+    <span class="slbl">Nuestro equipo</span>
+    <div class="gline"></div>
+    <h2 class="stit">Los Guardianes del Saber</h2>
+    <p class="sdesc">Cada personaje de Excelsior Academy representa una habilidad cognitiva y es tutor virtual de CognitExAc.</p>
+  </div>
+  <div class="persgrid">
+    <div class="perscard reveal" style="border-color:#F59E0B33"><span class="persico">🎓</span><h3 style="color:#92610A">Excelencia</h3><div class="persrole" style="background:#F59E0B18;color:#92610A">Directora</div><p>Guía a todos los alumnos con sabiduría y el estándar más alto.</p></div>
+    <div class="perscard reveal" style="border-color:#8B5CF633"><span class="persico">🧠</span><h3 style="color:#6D28D9">Coco</h3><div class="persrole" style="background:#8B5CF618;color:#6D28D9">Memoria</div><p>Técnicas de memorización y repetición espaciada.</p></div>
+    <div class="perscard reveal" style="border-color:#10B98133"><span class="persico">📚</span><h3 style="color:#047857">La Profe</h3><div class="persrole" style="background:#10B98118;color:#047857">Lenguaje</div><p>Vocabulario, ortografía y comprensión lectora.</p></div>
+    <div class="perscard reveal" style="border-color:#EF444433"><span class="persico">⚡</span><h3 style="color:#B91C1C">Chispa</h3><div class="persrole" style="background:#EF444418;color:#B91C1C">Matemáticas</div><p>Velocidad de cálculo. De tablas al cálculo diferencial.</p></div>
+    <div class="perscard reveal" style="border-color:#3B82F633"><span class="persico">🎯</span><h3 style="color:#1D4ED8">Vale</h3><div class="persrole" style="background:#3B82F618;color:#1D4ED8">Atención</div><p>Concentración y foco para ignorar distractores.</p></div>
+    <div class="perscard reveal" style="border-color:#F9731633"><span class="persico">🔮</span><h3 style="color:#C2410C">Don Raro</h3><div class="persrole" style="background:#F9731618;color:#C2410C">Razonamiento</div><p>Lógica, patrones y pensamiento crítico con método.</p></div>
+  </div>
+</section>
+
+<!-- ─── TESTIMONIOS ────────────────────────────────────── -->
+<section id="testimonios">
+  <div class="cx">
+    <span class="slbl">Lo que dicen nuestros clientes</span>
+    <div class="gline"></div>
+    <h2 class="stit">Familias que confían en nosotros</h2>
+    <p class="sdesc" style="margin:0 auto 36px">Más de 4.8 estrellas en calificación promedio. Esto es lo que nos comparten las mamás y papás de nuestros alumnos.</p>
+  </div>
+
+  <!-- Barra de rating -->
+  <div class="rating-bar reveal">
+    <div class="rb-score">
+      <div class="rb-big">4.8</div>
+      <div class="rb-stars">★★★★★</div>
+      <div class="rb-sub">Calificación promedio</div>
+    </div>
+    <div class="rb-divider"></div>
+    <div class="rb-items">
+      <div class="rb-row"><div class="rb-label">Calidad</div><div class="rb-track"><div class="rb-fill" style="width:98%"></div></div><div class="rb-pct">4.9</div></div>
+      <div class="rb-row"><div class="rb-label">Puntualidad</div><div class="rb-track"><div class="rb-fill" style="width:94%"></div></div><div class="rb-pct">4.7</div></div>
+      <div class="rb-row"><div class="rb-label">Resultados</div><div class="rb-track"><div class="rb-fill" style="width:96%"></div></div><div class="rb-pct">4.8</div></div>
+      <div class="rb-row"><div class="rb-label">Comunicación</div><div class="rb-track"><div class="rb-fill" style="width:98%"></div></div><div class="rb-pct">4.9</div></div>
+    </div>
+  </div>
+
+  <div class="tgrid">
+
+    <div class="tcard reveal">
+      <div class="tstars">★★★★★</div>
+      <p class="ttext">"La verdad no esperaba que mi hijo entendiera tan rápido. Llevaba dos años batallando con las matemáticas y en unas pocas semanas con Excelsior Academy ya le está yendo mucho mejor en la escuela. Valió muchísimo la pena cada peso invertido."</p>
+      <div class="tauthor">
+        <div class="tavatar">LR</div>
+        <div><div class="tname">Lupita Ramírez</div><div class="trole">Mamá de alumno de Primaria · Asesoría de Matemáticas</div></div>
+      </div>
+    </div>
+
+    <div class="tcard reveal">
+      <div class="tstars">★★★★★</div>
+      <p class="ttext">"Mi hija tenía que presentar el examen de admisión para la prepa y estaba muy nerviosa. El asesor nos explicó todo muy bien desde el principio y le fue excelente en el examen. Quedó en la escuela que ella quería. ¡Gracias Excelsior Academy!"</p>
+      <div class="tauthor">
+        <div class="tavatar">MG</div>
+        <div><div class="tname">Marco García</div><div class="trole">Papá de alumna de Secundaria · Curso de Admisión</div></div>
+      </div>
+    </div>
+
+    <div class="tcard reveal">
+      <div class="tstars">★★★★★</div>
+      <p class="ttext">"Lo que más me gustó fue que se adaptan a los horarios. Trabajo todo el día y mis hijos tienen actividades, entonces encontrar un asesor así es difícil. Súper flexibles, súper atentos. El trato es muy personalizado, no se siente como ir a una clase normal."</p>
+      <div class="tauthor">
+        <div class="tavatar">AC</div>
+        <div><div class="tname">Ana Castillo</div><div class="trole">Mamá de dos alumnos · Regularización y Asesorías</div></div>
+      </div>
+    </div>
+
+    <div class="tcard reveal">
+      <div class="tstars">★★★★☆</div>
+      <p class="ttext">"Mi hijo estaba reprobado en tres materias al inicio del semestre y con el plan de regularización logró pasarlas todas. Yo ya no sabía qué hacer porque en la escuela no le daban tiempo extra. En Excelsior Academy sí se preocuparon por él de verdad."</p>
+      <div class="tauthor">
+        <div class="tavatar">RF</div>
+        <div><div class="tname">Roberto Flores</div><div class="trole">Papá de alumno de Secundaria · Regularización</div></div>
+      </div>
+    </div>
+
+    <div class="tcard reveal">
+      <div class="tstars">★★★★★</div>
+      <p class="ttext">"Desde la primera clase vi que era diferente. El asesor explicaba las cosas de una manera que mi hija podía entender, con ejemplos de la vida diaria. Además el CognitExAc le encantó, lo usa hasta por diversión en las tardes. ¡Muy buena academia!"</p>
+      <div class="tauthor">
+        <div class="tavatar">SP</div>
+        <div><div class="tname">Sandra Pérez</div><div class="trole">Mamá de alumna de Primaria · Paquete Diamante</div></div>
+      </div>
+    </div>
+
+    <div class="tcard reveal">
+      <div class="tstars">★★★★★</div>
+      <p class="ttext">"Mi hijo presentó el examen para la universidad y quedó en ingeniería, que era lo que él quería. Estuvimos varios meses preparándonos con Excelsior Academy y sin duda fue la mejor decisión. Los recomiendo con los ojos cerrados a cualquier papá o mamá."</p>
+      <div class="tauthor">
+        <div class="tavatar">CE</div>
+        <div><div class="tname">Carmen Estrada</div><div class="trole">Mamá de alumno de Preparatoria · Curso de Admisión Universidad</div></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── COGNITEXAC ─────────────────────────────────────── -->
+<section id="cognitexac">
+  <canvas id="cogCanvas" style="position:absolute;inset:0;pointer-events:none;width:100%;height:100%"></canvas>
+  <!-- Orbs decorativos -->
+  <div class="orb" style="width:300px;height:300px;top:-80px;right:-80px;animation-delay:0s"></div>
+  <div class="orb" style="width:200px;height:200px;bottom:-60px;left:-60px;animation-delay:3s"></div>
+  <div class="cogbadge">🧠 Plataforma exclusiva de Excelsior Academy</div>
+  <h2>Conoce <span>CognitExAc</span></h2>
+  <p class="cogsub">La plataforma de entrenamiento mental más completa de la academia. Más de 49 juegos cognitivos en 7 categorías, niveles por edad, ranking entre alumnos y seguimiento de progreso en tiempo real.</p>
+  <div class="coggrid">
+    <div class="cogfeat"><div class="ico">🎴</div><h4>Memoria</h4><p>7 juegos para activar la memoria de trabajo.</p></div>
+    <div class="cogfeat"><div class="ico">➗</div><h4>Matemáticas</h4><p>Tablas, fracciones, ecuaciones y cálculo mental.</p></div>
+    <div class="cogfeat"><div class="ico">🎯</div><h4>Atención</h4><p>Stroop, intruso, vigilancia y doble tarea.</p></div>
+    <div class="cogfeat"><div class="ico">⚡</div><h4>Velocidad Mental</h4><p>Reflejos cognitivos y lectura relámpago.</p></div>
+    <div class="cogfeat"><div class="ico">📝</div><h4>Lenguaje</h4><p>Vocabulario, acentos, ortografía e inglés.</p></div>
+    <div class="cogfeat"><div class="ico">🧩</div><h4>Razonamiento</h4><p>Patrones, lógica y deducción.</p></div>
+    <div class="cogfeat"><div class="ico">🔄</div><h4>Flexibilidad</h4><p>N-Atrás, cambio de tarea e inhibición cognitiva.</p></div>
+  </div>
+  <a href="cognitexac.html" class="cogbtn" target="_blank">🧠 Entrar a CognitExAc →</a>
+  <p class="cognote">Solicita tu usuario y contraseña a tu asesor de Excelsior Academy</p>
+  <div class="cog-autoria">
+    CognitExAc es una plataforma de propiedad exclusiva de <span>Excelsior Academy</span>,
+    desarrollada y fundada por <span>Aldo Misael Flores Rueda</span>.<br>
+    Todos los personajes — Excelencia, Coco, La Profe, Chispa, Vale y Don Raro —
+    son creaciones originales de <span>Excelsior Academy</span> y de <span>Aldo Misael Flores Rueda</span>.<br>
+    Queda prohibida su reproducción o uso sin autorización.
+  </div>
+</section>
+
+<!-- ─── CONTACTO ──────────────────────────────────────── -->
+<section id="contacto">
+  <div class="cw">
+    <span class="slbl">¿Listo para empezar?</span>
+    <div class="gline"></div>
+    <h2 class="stit">Contáctanos hoy</h2>
+    <p class="sdesc">Escríbenos y respondemos en menos de 24 horas. ¡El futuro excelente comienza con un mensaje!</p>
+    <div class="ctgrid">
+      <div>
+        <div class="citem reveal">
+          <div class="cico">📱</div>
+          <div class="ctxt"><strong>WhatsApp / Teléfono</strong><a href="https://wa.me/527351587667" target="_blank">735 158 7667</a></div>
+        </div>
+        <div class="citem reveal">
+          <div class="cico">📸</div>
+          <div class="ctxt"><strong>Instagram</strong><a href="https://www.instagram.com/excelsioracademy_oficial" target="_blank">@excelsioracademy_oficial</a></div>
+        </div>
+        <div class="citem reveal">
+          <div class="cico">🏠</div>
+          <div class="ctxt"><strong>Modalidad</strong>Presencial a domicilio u online — tú decides. Los traslados presenciales tienen costo adicional según zona.</div>
+        </div>
+        <div class="citem reveal">
+          <div class="cico">🎓</div>
+          <div class="ctxt"><strong>Niveles</strong>Kinder · Primaria · Secundaria · Preparatoria · Universidad</div>
+        </div>
+        <a href="https://wa.me/527351587667" class="wabtn" target="_blank">💬 Escribir por WhatsApp</a>
+        <a href="https://www.instagram.com/excelsioracademy_oficial" target="_blank" style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;font-weight:800;font-size:.9rem;padding:14px 26px;border-radius:10px;text-decoration:none;margin-top:8px;transition:.25s;box-shadow:0 4px 16px rgba(220,39,67,.3)">📸 Seguir en Instagram</a>
+        <div class="hbox" style="margin-top:18px">
+          <h4>📅 Horarios de atención</h4>
+          <div class="hrow"><span>Lunes – Viernes</span><span>8:00 – 20:00</span></div>
+          <div class="hrow"><span>Sábado</span><span>9:00 – 15:00</span></div>
+          <div class="hrow"><span>Domingo</span><span>Previa cita</span></div>
+        </div>
+      </div>
+      <div class="ctbox reveal">
+        <div style="font-size:2.8rem">🎓</div>
+        <h3>Primera clase de diagnóstico</h3>
+        <p>Conocemos tu nivel, identificamos tus áreas de oportunidad y te recomendamos el paquete ideal para ti.</p>
+        <a href="https://wa.me/527351587667?text=Hola%2C%20quiero%20informacion%20sobre%20Excelsior%20Academy" class="wabtn" target="_blank">📞 Agendar mi diagnóstico</a>
+        <p style="font-size:.75rem;color:var(--text2)">Respuesta en menos de 24 horas</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─────────────────────────────────────────── -->
+
+<!-- ZONA DE MONETIZACIÓN (preparada para Google AdSense + afiliados) -->
+<!-- Para activar AdSense: reemplaza este bloque con tu código de AdSense -->
+<!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=CA-PUB-TUCODIGOAQUI" crossorigin="anonymous"></script> -->
+
+<!-- Banner patrocinado / afiliado placeholder -->
+<section style="background:var(--navy2);border-top:1px solid rgba(201,168,76,.15);border-bottom:1px solid rgba(201,168,76,.15);padding:20px 5%;text-align:center">
+  <div id="ad-banner" style="max-width:900px;margin:0 auto">
+    <!-- PLACEHOLDER: Aquí va tu banner de AdSense o afiliado cuando esté aprobado -->
+    <!-- Para activar: 1) Crea cuenta en google.com/adsense 2) Sube la web 3) Pega el código aquí -->
+    <p style="font-size:.7rem;color:rgba(255,255,255,.2);letter-spacing:1px">ESPACIO PUBLICITARIO — PRÓXIMAMENTE</p>
+  </div>
+</section>
+
+<footer>
+  <div class="ftop">
+    <div class="fbrand">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--gold-d),var(--gold));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem">🎓</div>
+        <div style="font-weight:800;color:#fff;font-size:.9rem">Excelsior Academy<br><small style="font-size:.5rem;color:var(--gold);letter-spacing:1px;font-weight:600">THE FUTURE'S EXCELLENCY</small></div>
+      </div>
+      <p>Academia privada de asesoría educativa personalizada de Kinder a Universidad. Online y presencial.</p>
+      <p class="fautoria">Fundada y dirigida por Aldo Misael Flores Rueda · © 2025</p>
+    </div>
+    <div class="fcol">
+      <h4>Navegación</h4>
+      <ul>
+        <li><a href="#nosotros">Nosotros</a></li>
+        <li><a href="#servicios">Servicios</a></li>
+        <li><a href="#metodologia">Metodología</a></li>
+        <li><a href="#personajes">Equipo</a></li>
+        <li><a href="#testimonios">Testimonios</a></li>
+        <li><a href="#cognitexac">CognitExAc</a></li>
+        <li><a href="#contacto">Contacto</a></li>
+        <li><a href="https://www.instagram.com/excelsioracademy_oficial" target="_blank">📸 Instagram</a></li>
+      </ul>
+    </div>
+    <div class="fcol">
+      <h4>Servicios</h4>
+      <ul>
+        <li><a href="#servicios">Lectura y Redacción</a></li>
+        <li><a href="#servicios">Cursos de Admisión</a></li>
+        <li><a href="#servicios">Regularización</a></li>
+        <li><a href="#servicios">Clases de Inglés</a></li>
+        <li><a href="#servicios">MatExcelsior</a></li>
+        <li><a href="#servicios">Asesorías Generales</a></li>
+        <li><a href="cognitexac.html" target="_blank">Plataforma CognitExAc</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="fbottom">
+    <p>© 2025 <span>Excelsior Academy</span> · Aldo Misael Flores Rueda. Todos los derechos reservados.</p>
+    <p>Hecho con <span>♥</span> · <a href="https://wa.me/527351587667" style="color:var(--gold);text-decoration:none">735 158 7667</a></p>
+  </div>
+</footer>
+
+<script>
+/* ─── MENÚ ─────────────────────────────────────────── */
+function tm(){
+  var mm=document.getElementById('mob-menu'), hb=document.getElementById('HB');
+  mm.classList.toggle('open');
+  hb.classList.toggle('open');
+}
+function cm(){
+  document.getElementById('mob-menu').classList.remove('open');
+  document.getElementById('HB').classList.remove('open');
+}
+document.addEventListener('click',function(e){
+  var mm=document.getElementById('mob-menu'),hb=document.getElementById('HB');
+  if(mm.classList.contains('open')&&!mm.contains(e.target)&&!hb.contains(e.target)){
+    mm.classList.remove('open');hb.classList.remove('open');
+  }
+});
+
+/* ─── SHOOTING STARS ENGINE ────────────────────────────
+   Reutilizable: llama a initStars(canvasId) en cualquier canvas
+───────────────────────────────────────────────────── */
+function initStars(canvasId){
+  var c=document.getElementById(canvasId);
+  if(!c)return;
+  var ctx=c.getContext('2d');
+
+  function resize(){
+    c.width=c.offsetWidth||c.parentElement.offsetWidth||window.innerWidth;
+    c.height=c.offsetHeight||c.parentElement.offsetHeight||window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize',resize);
+
+  /* ── Static star field ── */
+  var STAR_COUNT=120;
+  var stars=[];
+  for(var i=0;i<STAR_COUNT;i++){
+    stars.push({
+      x:Math.random(),y:Math.random(),
+      r:Math.random()*1.3+.2,
+      o:Math.random()*.7+.1,
+      tw:Math.random()*Math.PI*2,   // twinkle phase
+      ts:Math.random()*.02+.008,    // twinkle speed
+    });
+  }
+
+  /* ── Shooting stars ── */
+  var MAX_SHOOTS=6;
+  var shoots=[];
+
+  function spawnShoot(){
+    /* Random angle in any direction (0..2π) */
+    var angle=Math.random()*Math.PI*2;
+    var speed=3+Math.random()*5;
+    /* Start from random edge or interior point */
+    var x=Math.random()*c.width;
+    var y=Math.random()*c.height;
+    shoots.push({
+      x:x, y:y,
+      vx:Math.cos(angle)*speed,
+      vy:Math.sin(angle)*speed,
+      len:60+Math.random()*120,   // tail length
+      life:1,                      // 1 = full, fades to 0
+      decay:.008+Math.random()*.012,
+      width:.8+Math.random()*1.4,
+    });
+  }
+
+  /* Spawn first batch */
+  for(var s=0;s<MAX_SHOOTS;s++) setTimeout(spawnShoot, Math.random()*3000);
+
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+
+    /* ── Static stars ── */
+    stars.forEach(function(st){
+      st.tw+=st.ts;
+      var alpha=st.o*(0.5+0.5*Math.sin(st.tw));
+      ctx.beginPath();
+      ctx.arc(st.x*c.width, st.y*c.height, st.r, 0, Math.PI*2);
+      ctx.fillStyle='rgba(255,245,210,'+alpha.toFixed(3)+')';
+      ctx.fill();
+    });
+
+    /* ── Shooting stars ── */
+    for(var i=shoots.length-1;i>=0;i--){
+      var sh=shoots[i];
+      sh.life-=sh.decay;
+      if(sh.life<=0){shoots.splice(i,1);setTimeout(spawnShoot,500+Math.random()*2500);continue;}
+
+      var tailX=sh.x-sh.vx*(sh.len/Math.sqrt(sh.vx*sh.vx+sh.vy*sh.vy)*1);
+      var tailY=sh.y-sh.vy*(sh.len/Math.sqrt(sh.vx*sh.vx+sh.vy*sh.vy)*1);
+
+      var grad=ctx.createLinearGradient(tailX,tailY,sh.x,sh.y);
+      grad.addColorStop(0,'rgba(255,245,200,0)');
+      grad.addColorStop(0.6,'rgba(201,168,76,'+(sh.life*0.4).toFixed(3)+')');
+      grad.addColorStop(1,'rgba(255,255,255,'+(sh.life*0.95).toFixed(3)+')');
+
+      ctx.beginPath();
+      ctx.moveTo(tailX,tailY);
+      ctx.lineTo(sh.x,sh.y);
+      ctx.strokeStyle=grad;
+      ctx.lineWidth=sh.width*sh.life;
+      ctx.lineCap='round';
+      ctx.stroke();
+
+      /* Head glow */
+      var glow=ctx.createRadialGradient(sh.x,sh.y,0,sh.x,sh.y,sh.width*4);
+      glow.addColorStop(0,'rgba(255,255,240,'+(sh.life*0.9).toFixed(3)+')');
+      glow.addColorStop(1,'rgba(201,168,76,0)');
+      ctx.beginPath();
+      ctx.arc(sh.x,sh.y,sh.width*3,0,Math.PI*2);
+      ctx.fillStyle=glow;
+      ctx.fill();
+
+      sh.x+=sh.vx; sh.y+=sh.vy;
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* Init all star canvases */
+initStars('heroCanvas');
+initStars('cogCanvas');
+
+/* ─── REVEAL ON SCROLL ─────────────────────────────── */
+var io=new IntersectionObserver(function(es){
+  es.forEach(function(e){
+    if(e.isIntersecting) e.target.classList.add('visible');
+  });
+},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+</script>
+
+<!-- MENU MOVIL — Fuera del nav para evitar problemas de z-index con backdrop-filter -->
+<div id="mob-menu">
+  <a href="#nosotros"    onclick="cm()">Nosotros</a>
+  <a href="#servicios"   onclick="cm()">Servicios</a>
+  <a href="#metodologia" onclick="cm()">Metodología</a>
+  <a href="#personajes"  onclick="cm()">Equipo</a>
+  <a href="#testimonios" onclick="cm()">Testimonios</a>
+  <a href="#cognitexac"  onclick="cm()">CognitExAc</a>
+  <a href="#contacto"    onclick="cm()">Contacto</a>
+  <a href="cognitexac.html" class="ncta" target="_blank">🧠 Entrar a Plataforma</a>
+</div>
+
+</body>
+</html>
