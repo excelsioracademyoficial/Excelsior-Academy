@@ -1,0 +1,10 @@
+/* Official logo variants, preserving existing theme tokens. */
+.cx40-logo{display:block;flex-shrink:0;object-fit:contain;aspect-ratio:1;border-radius:50%}
+.nav-ico .cx40-logo{width:34px;height:34px}
+.cx40-login-logos{display:flex;justify-content:center;align-items:center;gap:16px;margin:0 auto 14px}
+.cx40-login-logos .cx40-logo{width:88px;height:88px}
+.cx40-panel-brand{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.cx40-panel-brand .cx40-logo{width:58px;height:58px}
+.cx40-menu-brand{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cx40-menu-brand .cx40-logo{width:42px;height:42px}
+@media(max-width:480px){.cx40-login-logos .cx40-logo{width:76px;height:76px}}
