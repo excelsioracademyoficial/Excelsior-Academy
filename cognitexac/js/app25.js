@@ -134,7 +134,7 @@
   function modal(html){
     cerrarModal();
     var o=document.createElement("div"); o.id="cx41o"; o.className="cx41o";
-    o.innerHTML='<div class="cx41m">'+html+'<div style="text-align:right;margin-top:12px"><button class="sec" id="cx41x">Cerrar</button></div></div>';
+    o.innerHTML='<div class="cx41m"><div class="cx40-panel-brand"><img class="cx40-logo" src="img/cognitexac-logo.jpg" alt="CognitExAc" width="80" height="80"><img class="cx40-logo" src="img/excelsior-academy-logo.jpg" alt="Excelsior Academy" width="80" height="80"></div>'+html+'<div style="text-align:right;margin-top:12px"><button class="sec" id="cx41x">Cerrar</button></div></div>';
     o.addEventListener("click",function(ev){ if(ev.target===o) cerrarModal(); });
     document.body.appendChild(o);
     document.getElementById("cx41x").onclick=cerrarModal;
@@ -144,24 +144,35 @@
   function leer(path){ return conTiempo(db().ref(path).once("value"),6000).then(function(s){ return s.val(); }); }
   var NIVELES=["Kinder","Primaria","Secundaria","Preparatoria","Universidad"];
   var SECCIONES=["","Primeros Pasos","Zona Kids"];
+  var MODALIDADES=["Matutino","Vespertino","Ejecutivo (solo sábados)"];
+  function edadDe(f){ var p=String(f||"").split("-"); if(p.length<3) return null; var y=+p[0],m=+p[1],d=+p[2]; if(!y||!m||!d) return null;
+    var h=new Date(), a=h.getFullYear()-y; if(h.getMonth()+1<m || (h.getMonth()+1===m && h.getDate()<d)) a--; return (a>=2&&a<=99)?a:null; }
+  function modalidadDe(t){ t=String(t||"").toLowerCase(); if(!t) return ""; if(t.indexOf("mat")===0) return MODALIDADES[0]; if(t.indexOf("ves")===0) return MODALIDADES[1]; if(t.indexOf("eje")===0||t.indexOf("sab")===0||t.indexOf("sáb")===0) return MODALIDADES[2]; return ""; }
 
   function crearEnEscuela(me,datos){
     var e=me.escuela, d=db();
     var u=window.cxNormUser(datos.user);
     if(!u||!datos.pass||!datos.name) return Promise.reject(new Error("Faltan usuario, contraseña o nombre"));
     if(!keyOk(u)) return Promise.reject(new Error("El usuario no puede llevar . # $ [ ] /"));
-    return Promise.all([leer("school_counts/"+e),leer("school_quotas/"+e)]).then(function(r){
-      var n=r[0]||0, q=r[1]||0;
+    var hp = window.cxHashPass ? window.cxHashPass(u,String(datos.pass)) : Promise.resolve(String(datos.pass));
+    return Promise.all([leer("school_counts/"+e),leer("school_quotas/"+e),hp]).then(function(r){
+      var n=r[0]||0, q=r[1]||0, passH=r[2];
       if(!q) throw new Error("Tu escuela aún no tiene cupo asignado");
       if(n>=q) throw new Error("Cupo lleno ("+n+"/"+q+")");
-      var rec={pass:String(datos.pass),name:String(datos.name),level:datos.nivel||"Primaria",nivel:datos.nivel||"Primaria",
-        escuela:e,active:true,pts:0,games:0,streak:0,best:0,isAdmin:false,isMainAdmin:false,
+      var rec={pass:passH,name:String(datos.name),level:datos.nivel||"Primaria",nivel:datos.nivel||"Primaria",
+        escuela:e,active:true,pts:0,games:0,streak:0,best:0,isAdmin:false,isMainAdmin:false,isPremium:true,premium:true,plan:"premium",
         catScores:{mem:50,mat:50,ate:50,vel:50,len:50,raz:50,fle:50},weekPts:0,monthPts:0,friends:[],friendRequests:[],
         createdAt:Date.now(),gradeStarted:Date.now(),createdBy:SES.u};
-      if(datos.edad) rec.edad=parseInt(datos.edad,10)||null;
-      if(datos.carrera && rec.nivel==="Universidad") rec.carrera=String(datos.carrera);
+      if(datos.fechaNac){
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(datos.fechaNac)) throw new Error("Fecha de nacimiento inválida (usa AAAA-MM-DD)");
+        rec.birthdate=datos.fechaNac; var ed=edadDe(datos.fechaNac); if(ed!=null) rec.edad=ed;
+      }
+      if(datos.grado) rec.grado=String(datos.grado);
+      if(datos.grupo) rec.grupo=String(datos.grupo);
+      if(datos.carrera) rec.carrera=String(datos.carrera);
+      if(datos.modalidad) rec.modalidad=datos.modalidad;
       if(datos.seccion) rec.seccion=datos.seccion;
-      var up={}; up["cog_users/"+u]=rec; up["school_counts/"+e]=n+1; up["school_last/"+e]=u;
+      var up={}; up["cog_users/"+u]=rec; up["school_counts/"+e]=n+1;
       return conTiempo(d.ref().update(up),8000).then(function(){ USERS[u]=rec; LAST[u]=JSON.stringify(rec); guardarLocal(); return u; })
         .catch(function(err){
           if(/timeout/.test(err.message)) throw new Error("Sin conexión con la nube; no se creó");
@@ -170,16 +181,18 @@
     });
   }
 
+  window.cxOpenSchoolPanel=function(){ var me=SES&&USERS[SES.u]; if(!me) return N("Inicia sesión de nuevo para abrir el panel","#F59E0B"); if(esAdminEsc(me)) return panelEscuela(); if(esSuper(me)) return panelSuper(); };
   function panelEscuela(){
     var me=USERS[SES.u]; var e=me.escuela;
     modal('<h2 style="margin:0">🏫 '+esc(e)+'</h2><div id="cx41q" class="cx41g" style="margin-top:10px"><div class="cx41k">Cargando…</div></div>'+
       '<h3>➕ Crear cuenta</h3><div class="cx41r"><input id="cx41u" placeholder="Usuario"><input id="cx41p" placeholder="Contraseña"></div>'+
       '<input id="cx41n" placeholder="Nombre completo"><div class="cx41r"><select id="cx41lv">'+NIVELES.map(function(n){return '<option>'+n+'</option>';}).join("")+'</select>'+
-      '<input id="cx41ed" type="number" min="2" max="99" placeholder="Edad"></div><div class="cx41r"><input id="cx41ca" placeholder="Carrera (solo Universidad)">'+
+      '<input id="cx41fn" type="date" title="Fecha de nacimiento"></div><div class="cx41r"><input id="cx41gr" placeholder="Grado (ej. 3°)"><input id="cx41gp" placeholder="Grupo (ej. B)"></div>'+
+      '<div class="cx41r"><select id="cx41mo"><option value="">Modalidad…</option>'+MODALIDADES.map(function(m){return '<option>'+m+'</option>';}).join("")+'</select><input id="cx41ca" placeholder="Carrera (si aplica)"></div><div class="cx41r">'+
       '<select id="cx41se">'+SECCIONES.map(function(s){return '<option value="'+s+'">'+(s||"Sección especial: ninguna")+'</option>';}).join("")+'</select></div>'+
       '<button id="cx41c1">Crear cuenta</button>'+
-      '<h3>📋 Alta masiva</h3><div style="font-size:12px;opacity:.8">Una cuenta por línea: usuario, contraseña, nombre, nivel, edad, carrera, sección (los 3 primeros son obligatorios)</div>'+
-      '<textarea id="cx41bk" rows="5" placeholder="ana01, clave123, Ana López, Primaria, 8"></textarea><button id="cx41c2">Crear todas</button><div id="cx41bl" style="font-size:12px"></div>'+
+      '<h3>📋 Alta masiva</h3><div style="font-size:12px;opacity:.8">Una cuenta por línea: usuario, contraseña, nombre, nivel, fechaNac (AAAA-MM-DD), grado, grupo, carrera, modalidad (Matutino / Vespertino / Ejecutivo). Los 3 primeros son obligatorios; deja vacío lo que no aplique.</div>'+
+      '<textarea id="cx41bk" rows="5" placeholder="ana01, clave123, Ana López, Primaria, 2017-05-14, 3, B, , Matutino"></textarea><button id="cx41c2">Crear todas</button><div id="cx41bl" style="font-size:12px"></div>'+
       '<h3>📊 Mis cuentas por categoría</h3><div id="cx41cat"></div><h3>👥 Alumnos</h3><div id="cx41ls" style="max-height:280px;overflow:auto"></div>');
     function refrescar(){
       Promise.all([leer("school_counts/"+e),leer("school_quotas/"+e)]).then(function(r){
@@ -187,15 +200,15 @@
         if($("cx41q")) $("cx41q").innerHTML='<div class="cx41k">Cupo total<b>'+q+'</b></div><div class="cx41k">Creadas<b>'+n+'</b></div><div class="cx41k">Disponibles<b>'+Math.max(0,q-n)+'</b></div>';
       }).catch(function(){ if($("cx41q")) $("cx41q").innerHTML='<div class="cx41k">Sin conexión con la nube</div>'; });
       var lista=Object.keys(USERS).filter(function(k){ var x=USERS[k]; return x && x.escuela===e && x.role!=="schooladmin"; }).sort();
-      var cat={}; lista.forEach(function(k){ var x=USERS[k]; [x.nivel||x.level||"Sin nivel", x.seccion, x.carrera?("Carrera: "+x.carrera):null, x.edad?(x.edad+" años"):null].forEach(function(c){ if(c) cat[c]=(cat[c]||0)+1; }); });
+      var cat={}; lista.forEach(function(k){ var x=USERS[k]; [x.nivel||x.level||"Sin nivel", x.seccion, x.modalidad, x.grado?("Grado "+x.grado+(x.grupo?" "+x.grupo:"")):null, x.carrera?("Carrera: "+x.carrera):null, x.edad?(x.edad+" años"):null].forEach(function(c){ if(c) cat[c]=(cat[c]||0)+1; }); });
       if($("cx41cat")) $("cx41cat").innerHTML=Object.keys(cat).length?Object.keys(cat).map(function(c){return '<span style="display:inline-block;background:#1e293b;border-radius:999px;padding:4px 10px;margin:3px">'+esc(c)+': <b>'+cat[c]+'</b></span>';}).join(""):"Aún no hay cuentas.";
-      if($("cx41ls")) $("cx41ls").innerHTML='<table class="cx41t"><tr><th>Usuario</th><th>Nombre</th><th>Nivel</th><th>Edad</th><th>Sección</th></tr>'+lista.map(function(k){var x=USERS[k];return '<tr><td>'+esc(k)+'</td><td>'+esc(x.name)+'</td><td>'+esc(x.nivel||x.level)+'</td><td>'+esc(x.edad||"")+'</td><td>'+esc(x.seccion||"")+'</td></tr>';}).join("")+'</table>';
+      if($("cx41ls")) $("cx41ls").innerHTML='<table class="cx41t"><tr><th>Usuario</th><th>Nombre</th><th>Nivel</th><th>Edad</th><th>Grado/Grupo</th><th>Modalidad</th><th>Carrera</th></tr>'+lista.map(function(k){var x=USERS[k];return '<tr><td>'+esc(k)+'</td><td>'+esc(x.name)+'</td><td>'+esc(x.nivel||x.level)+'</td><td>'+esc(x.birthdate?(edadDe(x.birthdate)||x.edad||""):(x.edad||""))+'</td><td>'+esc((x.grado||"")+(x.grupo?" "+x.grupo:""))+'</td><td>'+esc(x.modalidad||"")+'</td><td>'+esc(x.carrera||"")+'</td></tr>';}).join("")+'</table>';
     }
     refrescar();
     $("cx41c1").onclick=function(){
       var b=this; b.disabled=true;
-      crearEnEscuela(me,{user:$("cx41u").value,pass:$("cx41p").value.trim(),name:$("cx41n").value.trim(),nivel:$("cx41lv").value,edad:$("cx41ed").value,carrera:$("cx41ca").value.trim(),seccion:$("cx41se").value})
-      .then(function(u){ N("☁️ Cuenta creada y sincronizada: "+u); ["cx41u","cx41p","cx41n","cx41ed","cx41ca"].forEach(function(i){$(i).value="";}); refrescar(); })
+      crearEnEscuela(me,{user:$("cx41u").value,pass:$("cx41p").value.trim(),name:$("cx41n").value.trim(),nivel:$("cx41lv").value,fechaNac:$("cx41fn").value,grado:$("cx41gr").value.trim(),grupo:$("cx41gp").value.trim(),modalidad:$("cx41mo").value,carrera:$("cx41ca").value.trim(),seccion:$("cx41se").value})
+      .then(function(u){ N("☁️ Cuenta creada y sincronizada: "+u); ["cx41u","cx41p","cx41n","cx41fn","cx41gr","cx41gp","cx41ca"].forEach(function(i){$(i).value="";}); refrescar(); })
       .catch(function(err){ N("❌ "+err.message,"#EF4444"); }).then(function(){ b.disabled=false; });
     };
     $("cx41c2").onclick=function(){
@@ -204,8 +217,8 @@
       b.disabled=true; var ok=0, fallas=[];
       filas.reduce(function(pr,f){ return pr.then(function(){
         var nv=NIVELES.filter(function(n){return n.toLowerCase()===(f[3]||"").toLowerCase();})[0]||"Primaria";
-        var sc=SECCIONES.filter(function(s){return s && s.toLowerCase()===(f[6]||"").toLowerCase();})[0]||"";
-        return crearEnEscuela(me,{user:f[0],pass:f[1],name:f[2],nivel:nv,edad:f[4],carrera:f[5],seccion:sc}).then(function(){ok++;},function(err){fallas.push(f[0]+": "+err.message);});
+        if(f[8] && !modalidadDe(f[8])){ fallas.push(f[0]+": modalidad desconocida ("+f[8]+")"); return; }
+        return crearEnEscuela(me,{user:f[0],pass:f[1],name:f[2],nivel:nv,fechaNac:f[4],grado:f[5],grupo:f[6],carrera:f[7],modalidad:modalidadDe(f[8])}).then(function(){ok++;},function(err){fallas.push(f[0]+": "+err.message);});
       }); },Promise.resolve()).then(function(){
         b.disabled=false; $("cx41bl").innerHTML="✅ Creadas: "+ok+(fallas.length?"<br>❌ "+fallas.map(esc).join("<br>❌ "):"");
         N("Alta masiva: "+ok+" creadas"+(fallas.length?", "+fallas.length+" con error":""), fallas.length?"#F59E0B":"#10B981"); refrescar();
@@ -216,7 +229,7 @@
   function panelSuper(){
     var soyMaestra=esMaestra(SES.u), otra=SES.u==="aldo"?"excelsioracademy":"aldo";
     modal('<h2 style="margin:0">🏫 Escuelas, cupos y administradores</h2>'+
-      '<h3>Asignar / cambiar cupo</h3><div class="cx41r"><input id="cx41se1" placeholder="Nombre exacto de la escuela"><select id="cx41qq"><option>200</option><option>250</option><option>650</option><option>900</option><option value="otro">Otro…</option></select></div>'+
+      '<h3>Asignar / cambiar cupo</h3><div class="cx41r"><input id="cx41se1" placeholder="Nombre exacto de la escuela"><select id="cx41qq"><option>200</option><option>250</option><option>600</option><option>650</option><option>900</option><option value="otro">Otro…</option></select></div>'+
       '<input id="cx41qo" type="number" min="1" placeholder="Cupo personalizado" style="display:none"><button id="cx41sq">Guardar cupo</button>'+
       '<h3>Crear administrador de escuela</h3><div class="cx41r"><input id="cx41au" placeholder="Usuario del admin"><input id="cx41ap" placeholder="Contraseña"></div><div class="cx41r"><input id="cx41an" placeholder="Nombre"><input id="cx41ae" placeholder="Escuela (nombre exacto)"></div><button id="cx41ca">Crear admin de escuela</button>'+
       '<h3>Escuelas</h3><div id="cx41sl">Cargando…</div>'+
@@ -255,15 +268,18 @@
       if(!u||!p||!n||!e) return N("⚠️ Llena los 4 campos","#F59E0B");
       if(!keyOk(u)||!keyOk(e)) return N("⚠️ Usuario y escuela no pueden llevar . # $ [ ] /","#F59E0B");
       if(USERS[u]||esMaestra(u)) return N("❌ Ese usuario ya existe","#EF4444");
-      var rec={pass:p,name:n,level:"Admin",escuela:e,role:"schooladmin",active:true,isAdmin:false,isMainAdmin:false,pts:0,games:0,streak:0,best:0,
+      var b=this; b.disabled=true;
+      (window.cxHashPass?window.cxHashPass(u,p):Promise.resolve(p)).then(function(ph){
+      var rec={pass:ph,name:n,level:"Admin",escuela:e,role:"schooladmin",active:true,isAdmin:false,isMainAdmin:false,pts:0,games:0,streak:0,best:0,
         catScores:{mem:50,mat:50,ate:50,vel:50,len:50,raz:50,fle:50},weekPts:0,monthPts:0,friends:[],friendRequests:[],createdAt:Date.now(),createdBy:SES.u};
       db().ref("cog_users/"+u).set(rec).then(function(){ USERS[u]=rec; LAST[u]=JSON.stringify(rec); guardarLocal(); N("✅ Admin de "+e+" creado: "+u); listar(); })
         .catch(function(){ N("❌ Firebase no lo permitió (¿ya existe ese usuario?)","#EF4444"); });
+      }).then(function(){ b.disabled=false; });
     };
     if(!soyMaestra) return;
     function cambiar(cuenta,np,propia){
       if(!np||np.length<10) return N("⚠️ Mínimo 10 caracteres","#F59E0B");
-      db().ref("cog_users/"+cuenta+"/pass").set(np).then(function(){
+      (window.cxHashPass?window.cxHashPass(cuenta,np):Promise.resolve(np)).then(function(h){ np=h; return db().ref("cog_users/"+cuenta+"/pass").set(np); }).then(function(){
         if(USERS[cuenta]){ USERS[cuenta].pass=np; LAST[cuenta]=JSON.stringify(USERS[cuenta]); guardarLocal(); }
         return propia?abrirSesion(cuenta,np):true;
       }).then(function(){ $("cx41np").value=""; $("cx41op").value=""; N("🔑 Contraseña de "+cuenta+" actualizada."); })
